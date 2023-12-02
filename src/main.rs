@@ -103,10 +103,7 @@ fn run_on_input(day: u32, input: &str, dump_input: bool) -> Result<()> {
     let file = File::open(input)?;
     let buffer_reader = BufReader::new(file);
     for line in buffer_reader.lines() {
-        match line {
-            Ok(line) => problem.parse_line(line)?,
-            Err(_) => break,
-        }
+        problem.parse_line(line?)?;
     }
 
     println!("parsing finished ({}ms)", parsing_time.elapsed().as_millis());
