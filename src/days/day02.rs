@@ -1,5 +1,7 @@
 use crate::problem::AoCProblem;
 
+use anyhow::{Result, anyhow, bail};
+
 const R: u32 = 12;
 const G: u32 = 13;
 const B: u32 = 14; 
@@ -10,15 +12,15 @@ pub struct AoCDay2 {
 }
 
 impl AoCProblem for AoCDay2 {
-    fn parse_line(&mut self, line: String) {
+    fn parse_line(&mut self, line: String) -> Result<()> {
         let mut games: Vec<(u32, u32, u32)> = Vec::new();
-        for game in line.split(":").skip(1).next().unwrap().split(";") {
+        for game in line.split(':').nth(1).ok_or(anyhow!("invalid input"))?.split(';') {
             let mut r: u32 = 0;
             let mut g: u32 = 0;
             let mut b: u32 = 0;
-            for color_line in game.split(",") {
-                let parts = color_line.trim().split(" ").collect::<Vec<&str>>();
-                let number = parts[0].parse::<u32>().unwrap();
+            for color_line in game.split(',') {
+                let parts = color_line.trim().split(' ').collect::<Vec<&str>>();
+                let number = parts[0].parse::<u32>()?;
                 let color = parts[1];
 
                 match color {
@@ -32,7 +34,7 @@ impl AoCProblem for AoCDay2 {
                         b = number;
                     }
                     _ => {
-                        unreachable!();
+                        bail!("invalid input");
                     }
                 }
             }
@@ -40,9 +42,11 @@ impl AoCProblem for AoCDay2 {
         }
 
         self.games.push(games);
+
+        Ok(())
     }
 
-    fn solve_part1(&self) -> String {
+    fn solve_part1(&self) -> Result<String> {
         let mut result: usize = 0;
         for (id, rounds) in self.games.iter().enumerate() {
             if rounds.iter().all(|&(r, g, b)| r <= R && g <= G && b <= B) {
@@ -50,10 +54,10 @@ impl AoCProblem for AoCDay2 {
             }
         }
 
-        result.to_string()
+        Ok(result.to_string())
     }
 
-    fn solve_part2(&self) -> String {
+    fn solve_part2(&self) -> Result<String> {
         let mut result: u32 = 0;
         for game in &self.games {
             let (mut max_r, mut max_g, mut max_b) = (0u32, 0u32, 0u32);
@@ -65,6 +69,6 @@ impl AoCProblem for AoCDay2 {
             result += max_r * max_b * max_g;
         }
 
-        result.to_string()
+        Ok(result.to_string())
     }
 }

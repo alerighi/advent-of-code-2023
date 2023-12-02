@@ -3,10 +3,12 @@ use std::fs::{self, File, OpenOptions};
 use std::path::Path;
 use std::fmt::Debug;
 
+use anyhow::Result;
+
 pub trait AoCProblem: Debug {
-    fn parse_line(&mut self, line: String);
-    fn solve_part1(&self) -> String;
-    fn solve_part2(&self) -> String;
+    fn parse_line(&mut self, line: String) -> anyhow::Result<()>;
+    fn solve_part1(&self) -> Result<String>;
+    fn solve_part2(&self) -> Result<String>;
 }
 
 pub fn create_template(day: u32) -> io::Result<()> {
@@ -27,16 +29,16 @@ pub fn create_template(day: u32) -> io::Result<()> {
     writeln!(day_file,"use crate::problem::AoCProblem;\n")?;
     writeln!(day_file,"#[derive(Debug, Default)]")?;
     writeln!(day_file, "pub struct AoCDay{} {{\n}}", day)?;
-    writeln!(day_file, "")?;
+    writeln!(day_file)?;
     writeln!(day_file, "impl AoCProblem for AoCDay{} {{", day)?;
     writeln!(day_file, "    fn parse_line(&mut self, line: String) {{")?;
     writeln!(day_file, "        // TODO")?;
     writeln!(day_file, "    }}")?;
-    writeln!(day_file, "")?;
+    writeln!(day_file)?;
     writeln!(day_file, "    fn solve_part1(&self) -> String {{")?;
     writeln!(day_file, "        \"TODO\".into()")?;
     writeln!(day_file, "    }}")?;
-    writeln!(day_file, "")?;
+    writeln!(day_file)?;
     writeln!(day_file, "    fn solve_part2(&self) -> String {{")?;
     writeln!(day_file, "        \"TODO\".into()")?;
     writeln!(day_file, "    }}")?;
