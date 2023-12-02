@@ -42,10 +42,6 @@ struct Args {
     /// day to solve
     day: u32,
 
-    /// generate template for the day
-    #[arg(short, long)]
-    template: bool,
-
     /// dump the input
     #[arg(short, long)]
     dump_input: bool,
@@ -53,10 +49,6 @@ struct Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-
-    if args.template {
-        problem::create_template(args.day)?;
-    }
 
     println!("*** solving day {} ***", args.day);
 
@@ -107,6 +99,7 @@ fn run_on_input(day: u32, input: &str, dump_input: bool) -> Result<()> {
 
     println!("Running on input: {}", input);
 
+    let parsing_time = Instant::now();
     let file = File::open(input)?;
     let buffer_reader = BufReader::new(file);
     for line in buffer_reader.lines() {
@@ -115,6 +108,8 @@ fn run_on_input(day: u32, input: &str, dump_input: bool) -> Result<()> {
             Err(_) => break,
         }
     }
+
+    println!("parsing finished ({}ms)", parsing_time.elapsed().as_millis());
 
     if dump_input {
         println!("PARSED INPUT: {:#?}", problem);
