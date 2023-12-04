@@ -1,5 +1,6 @@
 mod days;
 mod problem;
+mod utils;
 
 use std::fs::File;
 use std::io::{BufRead, BufReader};
