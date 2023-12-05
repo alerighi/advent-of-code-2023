@@ -9,7 +9,6 @@ newline = _{ "\n" }
 seeds = { "seeds:" ~ (whitespace ~ number)+ ~ newline }
 
 row = { (number ~ whitespace?)+ ~ newline }
-header = { string ~ "-to-" ~ string ~ " map:" ~ newline }
-map = { header ~ row+ ~ newline? }
+map = { string ~ "-to-" ~ string ~ " map:" ~ newline  ~ row+ ~ newline? }
 
 input = _{ seeds ~ newline ~ map+ }

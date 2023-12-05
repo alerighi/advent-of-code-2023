@@ -1,7 +1,7 @@
-use std::{collections::HashMap, io::BufRead};
+use std::{collections::{HashMap, VecDeque}, io::BufRead};
 
 use crate::problem::AoCProblem;
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
@@ -10,6 +10,12 @@ use pest_derive::Parser;
 #[grammar = "src/days/day05.pest"]
 struct Day05Parser;
 
+trait Parse {
+    fn parse(node: Pair<'_, Rule>) -> Result<Self>
+    where
+        Self: Sized;
+}
+
 #[derive(Debug)]
 struct Conversion {
     source_start: u64,
@@ -17,11 +23,59 @@ struct Conversion {
     length: u64,
 }
 
-#[derive(Debug, Default)]
+impl Parse for Conversion {
+    fn parse(node: Pair<'_, Rule>) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        let inner_nodes: Vec<Pair<'_, Rule>> = node.into_inner().collect();
+
+        Ok(Conversion {
+            destination_start: inner_nodes[0].as_str().parse()?,
+            source_start: inner_nodes[1].as_str().parse()?,
+            length: inner_nodes[2].as_str().parse()?,
+        })
+    }
+}
+
+#[derive(Debug)]
 struct Mapping {
     from: String,
     to: String,
     conversions: Vec<Conversion>,
+}
+
+impl Parse for Mapping {
+    fn parse(node: Pair<'_, Rule>) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        let mut inner_nodes: VecDeque<Pair<'_, Rule>> = node.into_inner().collect();
+
+        let mut mapping = Mapping {
+            from: inner_nodes
+                .pop_front()
+                .ok_or(anyhow!("invalid input"))?
+                .as_str()
+                .into(),
+            to: inner_nodes
+                .pop_front()
+                .ok_or(anyhow!("invalid input"))?
+                .as_str()
+                .into(),
+            conversions: Vec::new(),
+        };
+
+        for inner_node in inner_nodes {
+            mapping.conversions.push(Conversion::parse(inner_node)?);
+        }
+
+        mapping
+            .conversions
+            .sort_by(|a, b| a.source_start.cmp(&b.source_start));
+
+        Ok(mapping)
+    }
 }
 
 impl Mapping {
@@ -94,72 +148,16 @@ pub struct AoCDay5 {
     mapping: HashMap<String, Mapping>,
 }
 
+impl Parse for Vec<u64> {
+    fn parse(node: Pair<'_, Rule>) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        node.into_inner().map(|n| n.as_str().parse::<u64>().map_err(anyhow::Error::from)).into_iter().collect::<Result<Vec<u64>>>()
+    }
+}
+
 impl AoCDay5 {
-    fn parse_row(pair: Pair<'_, Rule>) -> Result<Vec<u64>> {
-        let mut result = Vec::new();
-        for sub_pair in pair.into_inner() {
-            match sub_pair.as_rule() {
-                Rule::number => {
-                    result.push(sub_pair.as_str().parse()?);
-                }
-                _ => {
-                    bail!("unexpected token");
-                }
-            }
-        }
-
-        Ok(result)
-    }
-
-    fn parse_header(pair: Pair<'_, Rule>) -> Result<(String, String)> {
-        let mut result = Vec::new();
-
-        for sub_pair in pair.into_inner() {
-            match sub_pair.as_rule() {
-                Rule::string => {
-                    result.push(sub_pair.as_str());
-                }
-                _ => {
-                    bail!("parsing error");
-                }
-            }
-        }
-
-        if result.len() != 2 {
-            bail!("parsing error");
-        }
-
-        Ok((result[0].into(), result[1].into()))
-    }
-
-    fn parse_map(pair: Pair<'_, Rule>) -> Result<Mapping> {
-        let mut mapping = Mapping::default();
-        for sub_pair in pair.into_inner() {
-            match sub_pair.as_rule() {
-                Rule::header => {
-                    (mapping.from, mapping.to) = AoCDay5::parse_header(sub_pair)?;
-                }
-                Rule::row => {
-                    let row = AoCDay5::parse_row(sub_pair)?;
-                    mapping.conversions.push(Conversion {
-                        destination_start: row[0],
-                        source_start: row[1],
-                        length: row[2],
-                    });
-                }
-                _ => {
-                    bail!("parsing error")
-                }
-            }
-        }
-
-        mapping
-            .conversions
-            .sort_by(|a, b| a.source_start.cmp(&b.source_start));
-
-        Ok(mapping)
-    }
-
     fn find_min(&self, category: &String, start: u64, end: u64) -> u64 {
         // eprintln!("{} {} {} ", category, start, end);
         assert!(start <= end, "{} {}", start, end);
@@ -188,10 +186,10 @@ impl AoCProblem for AoCDay5 {
         for pair in parsed {
             match pair.as_rule() {
                 Rule::seeds => {
-                    self.seeds = AoCDay5::parse_row(pair)?;
+                    self.seeds = Vec::<u64>::parse(pair)?;
                 }
                 Rule::map => {
-                    let mapping = AoCDay5::parse_map(pair)?;
+                    let mapping = Mapping::parse(pair)?;
                     self.mapping.insert(mapping.from.clone(), mapping);
                 }
                 _ => {
