@@ -1,3 +1,5 @@
+use std::io::BufRead;
+
 use crate::problem::AoCProblem;
 use anyhow::{Result, bail};
 
@@ -6,7 +8,7 @@ pub struct AoCDay15 {
 }
 
 impl AoCProblem for AoCDay15 {
-    fn parse_line(&mut self, _line: String) -> Result<()>{
+    fn parse(&mut self, _reader: &mut dyn BufRead) -> Result<()> {
         bail!("not implemented")
     }
 

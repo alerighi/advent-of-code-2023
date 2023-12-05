@@ -3,13 +3,13 @@ mod problem;
 mod utils;
 
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::BufReader;
 use std::time::Instant;
 
 use problem::AoCProblem;
 
-use clap::Parser;
 use anyhow::{anyhow, Result};
+use clap::Parser;
 
 use crate::days::day01::AoCDay1;
 use crate::days::day02::AoCDay2;
@@ -60,7 +60,7 @@ fn main() -> Result<()> {
         let input = path.to_str().ok_or(anyhow!("parse failed"))?;
 
         match run_on_input(args.day, input, args.dump_input) {
-            Ok(()) => {},
+            Ok(()) => {}
             Err(error) => println!("error running on input {}: {:?}", input, error),
         }
     }
@@ -102,12 +102,13 @@ fn run_on_input(day: u32, input: &str, dump_input: bool) -> Result<()> {
 
     let parsing_time = Instant::now();
     let file = File::open(input)?;
-    let buffer_reader = BufReader::new(file);
-    for line in buffer_reader.lines() {
-        problem.parse_line(line?)?;
-    }
+    let mut buffer_reader = BufReader::new(file);
+    problem.parse(&mut buffer_reader)?;
 
-    println!("parsing finished ({}ms)", parsing_time.elapsed().as_millis());
+    println!(
+        "parsing finished ({}ms)",
+        parsing_time.elapsed().as_millis()
+    );
 
     if dump_input {
         println!("PARSED INPUT: {:#?}", problem);

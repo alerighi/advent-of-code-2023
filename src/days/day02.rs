@@ -1,10 +1,12 @@
+use std::io::BufRead;
+
 use crate::problem::AoCProblem;
 
-use anyhow::{Result, anyhow, bail};
+use anyhow::{anyhow, bail, Result};
 
 const R: u32 = 12;
 const G: u32 = 13;
-const B: u32 = 14; 
+const B: u32 = 14;
 
 #[derive(Debug, Default)]
 pub struct AoCDay2 {
@@ -12,36 +14,43 @@ pub struct AoCDay2 {
 }
 
 impl AoCProblem for AoCDay2 {
-    fn parse_line(&mut self, line: String) -> Result<()> {
-        let mut games: Vec<(u32, u32, u32)> = Vec::new();
-        for game in line.split(':').nth(1).ok_or(anyhow!("invalid input"))?.split(';') {
-            let mut r: u32 = 0;
-            let mut g: u32 = 0;
-            let mut b: u32 = 0;
-            for color_line in game.split(',') {
-                let parts = color_line.trim().split(' ').collect::<Vec<&str>>();
-                let number = parts[0].parse::<u32>()?;
-                let color = parts[1];
+    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
+        for line in reader.lines() {
+            let mut games: Vec<(u32, u32, u32)> = Vec::new();
+            for game in line?
+                .split(':')
+                .nth(1)
+                .ok_or(anyhow!("invalid input"))?
+                .split(';')
+            {
+                let mut r: u32 = 0;
+                let mut g: u32 = 0;
+                let mut b: u32 = 0;
+                for color_line in game.split(',') {
+                    let parts = color_line.trim().split(' ').collect::<Vec<&str>>();
+                    let number = parts[0].parse::<u32>()?;
+                    let color = parts[1];
 
-                match color {
-                    "red" => {
-                        r = number;
-                    }
-                    "green" => {
-                        g = number;
-                    }
-                    "blue" => {
-                        b = number;
-                    }
-                    _ => {
-                        bail!("invalid input");
+                    match color {
+                        "red" => {
+                            r = number;
+                        }
+                        "green" => {
+                            g = number;
+                        }
+                        "blue" => {
+                            b = number;
+                        }
+                        _ => {
+                            bail!("invalid input");
+                        }
                     }
                 }
+                games.push((r, g, b));
             }
-            games.push((r, g, b));
-        }
 
-        self.games.push(games);
+            self.games.push(games);
+        }
 
         Ok(())
     }

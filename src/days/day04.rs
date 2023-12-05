@@ -1,3 +1,5 @@
+use std::io::BufRead;
+
 use crate::utils::tokenizer::StringTokenizer;
 use crate::{problem::AoCProblem, utils::tokenizer::Tokenizer};
 use anyhow::Result;
@@ -14,25 +16,27 @@ pub struct AoCDay4 {
 }
 
 impl AoCProblem for AoCDay4 {
-    fn parse_line(&mut self, line: String) -> Result<()> {
-        let mut tokenizer = StringTokenizer::from(line.as_str());
-        tokenizer.read_until(':');
+    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
+        for line in reader.lines() {
+            let mut tokenizer = StringTokenizer::from(line?.as_str());
+            tokenizer.read_until(':');
 
-        let mut own_numbers: Vec<u32> = Vec::new();
-        while tokenizer.peek_char() != Some('|') {
-            own_numbers.push(tokenizer.next_digit().parse()?);
-            tokenizer.skip_whitespace();
+            let mut own_numbers: Vec<u32> = Vec::new();
+            while tokenizer.peek_char() != Some('|') {
+                own_numbers.push(tokenizer.next_digit().parse()?);
+                tokenizer.skip_whitespace();
+            }
+
+            let mut winning_numbers: Vec<u32> = Vec::new();
+            while tokenizer.peek_char().is_some() {
+                winning_numbers.push(tokenizer.next_digit().parse()?);
+            }
+
+            self.games.push(Game {
+                winning_numbers,
+                own_numbers,
+            });
         }
-
-        let mut winning_numbers: Vec<u32> = Vec::new();
-        while tokenizer.peek_char().is_some() {
-            winning_numbers.push(tokenizer.next_digit().parse()?);
-        }
-
-        self.games.push(Game {
-            winning_numbers,
-            own_numbers,
-        });
 
         Ok(())
     }
@@ -41,7 +45,8 @@ impl AoCProblem for AoCDay4 {
         let mut points: u32 = 0;
 
         for game in &self.games {
-            let winning_games: u32 = game.own_numbers
+            let winning_games: u32 = game
+                .own_numbers
                 .iter()
                 .map(|&n| {
                     if game.winning_numbers.iter().any(|&w| w == n) {
@@ -62,7 +67,8 @@ impl AoCProblem for AoCDay4 {
     fn solve_part2(&self) -> Result<String> {
         let mut multiplier = vec![1usize; self.games.len()];
         for (i, game) in self.games.iter().enumerate() {
-            let winning_games: usize = game.own_numbers
+            let winning_games: usize = game
+                .own_numbers
                 .iter()
                 .map(|&n| {
                     if game.winning_numbers.iter().any(|&w| w == n) {

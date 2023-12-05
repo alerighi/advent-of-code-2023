@@ -1,0 +1,15 @@
+alpha = _{ 'a'..'z' | 'A'..'Z' }
+digit = _{ '0'..'9' }
+string = { alpha+ }
+
+number = { digit+ }
+whitespace = _{ " "+ }
+newline = _{ "\n" }
+
+seeds = { "seeds:" ~ (whitespace ~ number)+ ~ newline }
+
+row = { (number ~ whitespace?)+ ~ newline }
+header = { string ~ "-to-" ~ string ~ " map:" ~ newline }
+map = { header ~ row+ ~ newline? }
+
+input = _{ seeds ~ newline ~ map+ }

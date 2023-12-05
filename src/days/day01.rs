@@ -1,3 +1,5 @@
+use std::io::BufRead;
+
 use crate::problem::AoCProblem;
 use anyhow::{Result, anyhow};
 
@@ -11,8 +13,10 @@ const NUMBER_AS_LETTERS: [&str; 10] = [
 ];
 
 impl AoCProblem for AoCDay1 {
-    fn parse_line(&mut self, line: String) -> anyhow::Result<()> {
-        self.lines.push(line);
+    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
+        for line in reader.lines() {
+            self.lines.push(line?);
+        }
 
         Ok(())
     }

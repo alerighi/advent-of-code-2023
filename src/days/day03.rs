@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, io::BufRead};
 
 use crate::problem::AoCProblem;
 use anyhow::Result;
@@ -44,36 +44,38 @@ impl AoCDay3 {
 }
 
 impl AoCProblem for AoCDay3 {
-    fn parse_line(&mut self, line: String) -> Result<()> {
-        let mut row: Vec<GridCell> = Vec::new();
-        let mut number: u32 = 0;
-        let mut i: u32 = 0;
+    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
+        for line in reader.lines() {
+            let mut row: Vec<GridCell> = Vec::new();
+            let mut number: u32 = 0;
+            let mut i: u32 = 0;
 
-        for c in line.chars() {
-            if c.is_ascii_digit() {
-                number = number * 10 + c.to_digit(10).unwrap();
-                i += 1;
-            } else {
-                for _ in 0..i {
-                    row.push(GridCell::Number(self.id, number));
-                }
-                self.id += 1;
-                number = 0;
-                i = 0;
-
-                if c == '.' {
-                    row.push(GridCell::Empty);
+            for c in line?.chars() {
+                if c.is_ascii_digit() {
+                    number = number * 10 + c.to_digit(10).unwrap();
+                    i += 1;
                 } else {
-                    row.push(GridCell::Symbol(c));
+                    for _ in 0..i {
+                        row.push(GridCell::Number(self.id, number));
+                    }
+                    self.id += 1;
+                    number = 0;
+                    i = 0;
+
+                    if c == '.' {
+                        row.push(GridCell::Empty);
+                    } else {
+                        row.push(GridCell::Symbol(c));
+                    }
                 }
             }
-        }
 
-        for _ in 0..i {
-            row.push(GridCell::Number(self.id, number));
-        }
+            for _ in 0..i {
+                row.push(GridCell::Number(self.id, number));
+            }
 
-        self.grid.push(row);
+            self.grid.push(row);
+        }
 
         Ok(())
     }
