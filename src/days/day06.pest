@@ -1,0 +1,14 @@
+alpha = _{ 'a'..'z' | 'A'..'Z' }
+digit = _{ '0'..'9' }
+string = { alpha+ }
+
+number = { digit+ }
+whitespace = _{ " "+ }
+newline = _{ "\n" }
+
+time = { "Time:" ~ (whitespace ~ number)+ ~ newline }
+distance = { "Distance:" ~ (whitespace ~ number)+ ~ newline }
+
+input = _{ time ~ distance }
+
+
