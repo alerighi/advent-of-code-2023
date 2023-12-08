@@ -3,7 +3,8 @@ mod problem;
 mod utils;
 
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, BufRead};
+use std::path::PathBuf;
 use std::time::Instant;
 
 use problem::AoCProblem;
@@ -54,14 +55,15 @@ fn main() -> Result<()> {
     println!("*** solving day {} ***", args.day);
 
     let dir = std::fs::read_dir(format!("input/{:02}", args.day))?;
-
     for file in dir {
         let path = file?.path();
-        let input = path.to_str().ok_or(anyhow!("parse failed"))?;
+        if !path.extension().is_some_and(|e| e == "ans") {
+            let input = path.to_str().ok_or(anyhow!("parse failed"))?;
 
-        match run_on_input(args.day, input, args.dump_input) {
-            Ok(()) => {}
-            Err(error) => println!("error running on input {}: {:?}", input, error),
+            match run_on_input(args.day, input, args.dump_input) {
+                Ok(()) => {}
+                Err(error) => println!("error running on input {}: {:?}", input, error),
+            }
         }
     }
 
@@ -114,21 +116,43 @@ fn run_on_input(day: u32, input: &str, dump_input: bool) -> Result<()> {
         println!("PARSED INPUT: {:#?}", problem);
     }
 
+    let mut ans_part_1 = String::new();
+    let mut ans_part_2 = String::new();
+    let ans_path = PathBuf::from(input).with_extension("ans");
+    if ans_path.exists() {
+        let ans_file = File::open(ans_path)?;
+        let mut ans_reader = BufReader::new(ans_file);
+        ans_reader.read_line(&mut ans_part_1)?;
+        ans_reader.read_line(&mut ans_part_2)?;
+    }
+
+    let validate = |ans: &String, expected: &String| -> &str {
+        if expected.len() == 0 {
+            "UNKNOWN"
+        } else if expected.trim() == ans {
+            "CORRECT"
+        } else {
+            " WRONG "
+        }
+    };
+
     let time_1 = Instant::now();
-    let result_1 = problem.solve_part1();
+    let result_1 = problem.solve_part1().unwrap_or("ERROR".into());
     println!(
-        "DAY{} PART 1 solution = {} ({}ms)",
+        "DAY{} PART 1 solution = {} [{}] ({}ms)",
         day,
-        result_1.unwrap_or("ERROR".into()),
+        result_1,
+        validate(&result_1, &ans_part_1),
         time_1.elapsed().as_millis()
     );
 
     let time_2 = Instant::now();
-    let result_2 = problem.solve_part2();
+    let result_2 = problem.solve_part2().unwrap_or("ERROR".into());
     println!(
-        "DAY{} PART 2 solution = {} ({}ms)",
+        "DAY{} PART 2 solution = {} [{}] ({}ms)",
         day,
-        result_2.unwrap_or("ERROR".into()),
+        result_2,
+        validate(&result_2, &ans_part_2),
         time_2.elapsed().as_millis()
     );
 

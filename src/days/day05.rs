@@ -180,7 +180,7 @@ impl AoCDay5 {
 
 impl AoCProblem for AoCDay5 {
     fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
-        let mut content = String::new();
+        let mut content: String = String::new();
         reader.read_to_string(&mut content)?;
         let parsed = Day05Parser::parse(Rule::input, &content)?;
         for pair in parsed {
