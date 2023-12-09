@@ -4,13 +4,16 @@ use crate::problem::AoCProblem;
 
 use anyhow::{anyhow, bail, Result};
 
+#[derive(Debug)]
+struct Color(u32, u32, u32);
+
 const R: u32 = 12;
 const G: u32 = 13;
 const B: u32 = 14;
 
 #[derive(Debug, Default)]
 pub struct AoCDay2 {
-    games: Vec<Vec<(u32, u32, u32)>>,
+    games: Vec<Vec<Color>>,
 }
 
 impl FromStr for AoCDay2 {
@@ -19,7 +22,7 @@ impl FromStr for AoCDay2 {
     fn from_str(s: &str) -> Result<Self> {
         let mut result = AoCDay2::default();
         for line in s.lines() {
-            let mut games: Vec<(u32, u32, u32)> = Vec::new();
+            let mut games: Vec<Color> = Vec::new();
             for game in line
                 .split(':')
                 .nth(1)
@@ -49,7 +52,7 @@ impl FromStr for AoCDay2 {
                         }
                     }
                 }
-                games.push((r, g, b));
+                games.push(Color(r, g, b));
             }
 
             result.games.push(games);
@@ -63,7 +66,7 @@ impl AoCProblem for AoCDay2 {
     fn solve_part1(&self) -> Result<String> {
         let mut result: usize = 0;
         for (id, rounds) in self.games.iter().enumerate() {
-            if rounds.iter().all(|&(r, g, b)| r <= R && g <= G && b <= B) {
+            if rounds.iter().all(|&Color(r, g, b)| r <= R && g <= G && b <= B) {
                 result += id + 1;
             }
         }
@@ -75,7 +78,7 @@ impl AoCProblem for AoCDay2 {
         let mut result: u32 = 0;
         for game in &self.games {
             let (mut max_r, mut max_g, mut max_b) = (0u32, 0u32, 0u32);
-            for &(r, g, b) in game {
+            for &Color(r, g, b) in game {
                 max_r = max_r.max(r);
                 max_b = max_b.max(b);
                 max_g = max_g.max(g);

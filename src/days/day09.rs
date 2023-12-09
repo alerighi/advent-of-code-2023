@@ -50,15 +50,16 @@ impl FromStr for AoCDay9 {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self> {
-        let mut values = Vec::new();
-        for line in s.lines() {
-            values.push(
-                line.split_ascii_whitespace()
-                    .map(|v| v.parse::<i64>())
-                    .collect::<Result<Vec<i64>, ParseIntError>>()?,
-            )
-        }
-        Ok(Self { values })
+        Ok(Self {
+            values: s
+                .lines()
+                .map(|line| {
+                    line.split_ascii_whitespace()
+                        .map(|v| v.parse::<i64>())
+                        .collect::<Result<Vec<i64>, ParseIntError>>()
+                })
+                .collect::<Result<Vec<Vec<i64>>, ParseIntError>>()?,
+        })
     }
 }
 
