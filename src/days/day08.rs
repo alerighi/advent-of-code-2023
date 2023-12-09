@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::problem::AoCProblem;
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, Result};
 use sscanf::sscanf;
 
 const START: &'static str = "AAA";

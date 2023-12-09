@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, collections::HashMap, io::BufRead};
 
 use crate::problem::AoCProblem;
-use anyhow::{bail, Result};
+use anyhow::Result;
 
 #[derive(Debug, Eq, Ord, Clone)]
 struct Hand(Vec<char>);
