@@ -1,4 +1,4 @@
-use std::io::BufRead;
+use std::str::FromStr;
 
 use crate::problem::AoCProblem;
 
@@ -13,11 +13,14 @@ pub struct AoCDay2 {
     games: Vec<Vec<(u32, u32, u32)>>,
 }
 
-impl AoCProblem for AoCDay2 {
-    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
-        for line in reader.lines() {
+impl FromStr for AoCDay2 {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let mut result = AoCDay2::default();
+        for line in s.lines() {
             let mut games: Vec<(u32, u32, u32)> = Vec::new();
-            for game in line?
+            for game in line
                 .split(':')
                 .nth(1)
                 .ok_or(anyhow!("invalid input"))?
@@ -49,12 +52,14 @@ impl AoCProblem for AoCDay2 {
                 games.push((r, g, b));
             }
 
-            self.games.push(games);
+            result.games.push(games);
         }
 
-        Ok(())
+        Ok(result)
     }
+}
 
+impl AoCProblem for AoCDay2 {
     fn solve_part1(&self) -> Result<String> {
         let mut result: usize = 0;
         for (id, rounds) in self.games.iter().enumerate() {

@@ -1,4 +1,4 @@
-use std::{collections::HashSet, io::BufRead};
+use std::{collections::HashSet, str::FromStr};
 
 use crate::problem::AoCProblem;
 use anyhow::Result;
@@ -12,7 +12,6 @@ enum GridCell {
 
 #[derive(Debug, Default)]
 pub struct AoCDay3 {
-    id: u32,
     grid: Vec<Vec<GridCell>>,
 }
 
@@ -43,22 +42,26 @@ impl AoCDay3 {
     }
 }
 
-impl AoCProblem for AoCDay3 {
-    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
-        for line in reader.lines() {
+impl FromStr for AoCDay3 {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let mut id = 0;
+        let mut grid = Vec::new();
+        for line in s.lines() {
             let mut row: Vec<GridCell> = Vec::new();
             let mut number: u32 = 0;
             let mut i: u32 = 0;
 
-            for c in line?.chars() {
+            for c in line.chars() {
                 if c.is_ascii_digit() {
                     number = number * 10 + c.to_digit(10).unwrap();
                     i += 1;
                 } else {
                     for _ in 0..i {
-                        row.push(GridCell::Number(self.id, number));
+                        row.push(GridCell::Number(id, number));
                     }
-                    self.id += 1;
+                    id += 1;
                     number = 0;
                     i = 0;
 
@@ -71,15 +74,17 @@ impl AoCProblem for AoCDay3 {
             }
 
             for _ in 0..i {
-                row.push(GridCell::Number(self.id, number));
+                row.push(GridCell::Number(id, number));
             }
 
-            self.grid.push(row);
+            grid.push(row);
         }
 
-        Ok(())
+        Ok(Self { grid })
     }
+}
 
+impl AoCProblem for AoCDay3 {
     fn solve_part1(&self) -> Result<String> {
         let mut result: u32 = 0;
         let mut already_sum = HashSet::new();

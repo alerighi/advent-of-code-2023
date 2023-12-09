@@ -1,4 +1,4 @@
-use std::io::BufRead;
+use std::str::FromStr;
 
 use crate::utils::tokenizer::StringTokenizer;
 use crate::{problem::AoCProblem, utils::tokenizer::Tokenizer};
@@ -15,10 +15,13 @@ pub struct AoCDay4 {
     games: Vec<Game>,
 }
 
-impl AoCProblem for AoCDay4 {
-    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
-        for line in reader.lines() {
-            let mut tokenizer = StringTokenizer::from(line?.as_str());
+impl FromStr for AoCDay4 {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let mut games = Vec::new();
+        for line in s.lines() {
+            let mut tokenizer = StringTokenizer::from(line);
             tokenizer.read_until(':');
 
             let mut own_numbers: Vec<u32> = Vec::new();
@@ -32,15 +35,17 @@ impl AoCProblem for AoCDay4 {
                 winning_numbers.push(tokenizer.next_digit().parse()?);
             }
 
-            self.games.push(Game {
+            games.push(Game {
                 winning_numbers,
                 own_numbers,
             });
         }
 
-        Ok(())
+        Ok(Self { games })
     }
+}
 
+impl AoCProblem for AoCDay4 {
     fn solve_part1(&self) -> Result<String> {
         let mut points: u32 = 0;
 

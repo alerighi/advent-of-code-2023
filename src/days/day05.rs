@@ -1,4 +1,7 @@
-use std::{collections::{HashMap, VecDeque}, io::BufRead};
+use std::{
+    collections::{HashMap, VecDeque},
+    str::FromStr,
+};
 
 use crate::problem::AoCProblem;
 use anyhow::{anyhow, bail, Result};
@@ -153,7 +156,9 @@ impl Parse for Vec<u64> {
     where
         Self: Sized,
     {
-        node.into_inner().map(|n| n.as_str().parse::<u64>().map_err(anyhow::Error::from)).into_iter().collect::<Result<Vec<u64>>>()
+        node.into_inner()
+            .map(|n| n.as_str().parse::<u64>().map_err(anyhow::Error::from))
+            .collect::<Result<Vec<u64>>>()
     }
 }
 
@@ -178,19 +183,20 @@ impl AoCDay5 {
     }
 }
 
-impl AoCProblem for AoCDay5 {
-    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
-        let mut content: String = String::new();
-        reader.read_to_string(&mut content)?;
-        let parsed = Day05Parser::parse(Rule::input, &content)?;
+impl FromStr for AoCDay5 {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let mut result = AoCDay5::default();
+        let parsed = Day05Parser::parse(Rule::input, s)?;
         for pair in parsed {
             match pair.as_rule() {
                 Rule::seeds => {
-                    self.seeds = Vec::<u64>::parse(pair)?;
+                    result.seeds = Vec::<u64>::parse(pair)?;
                 }
                 Rule::map => {
                     let mapping = Mapping::parse(pair)?;
-                    self.mapping.insert(mapping.from.clone(), mapping);
+                    result.mapping.insert(mapping.from.clone(), mapping);
                 }
                 _ => {
                     bail!("parsing error");
@@ -198,9 +204,11 @@ impl AoCProblem for AoCDay5 {
             }
         }
 
-        Ok(())
+        Ok(result)
     }
+}
 
+impl AoCProblem for AoCDay5 {
     fn solve_part1(&self) -> Result<String> {
         let mut result = u64::MAX;
         for &seed in &self.seeds {

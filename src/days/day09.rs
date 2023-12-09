@@ -1,4 +1,4 @@
-use std::{io::BufRead, num::ParseIntError};
+use std::{num::ParseIntError, str::FromStr};
 
 use crate::problem::AoCProblem;
 use anyhow::Result;
@@ -8,8 +8,8 @@ pub struct AoCDay9 {
     values: Vec<Vec<i64>>,
 }
 
-fn get_next_value(values: &Vec<i64>) -> i64 {
-    let mut expansion: Vec<Vec<i64>> = vec![values.clone(); 1];
+fn get_next_value(values: &[i64]) -> i64 {
+    let mut expansion: Vec<Vec<i64>> = vec![values.into(); 1];
 
     while !expansion.last().unwrap().iter().all(|&v| v == 0) {
         let mut row = Vec::new();
@@ -22,11 +22,11 @@ fn get_next_value(values: &Vec<i64>) -> i64 {
         expansion.push(row);
     }
 
-    expansion.iter().map(|v| v.last().unwrap().clone()).sum()
+    expansion.iter().map(|v| *v.last().unwrap()).sum()
 }
 
-fn get_prev_value(values: &Vec<i64>) -> i64 {
-    let mut expansion: Vec<Vec<i64>> = vec![values.clone(); 1];
+fn get_prev_value(values: &[i64]) -> i64 {
+    let mut expansion: Vec<Vec<i64>> = vec![values.into(); 1];
 
     while !expansion.last().unwrap().iter().all(|&v| v == 0) {
         let mut row = Vec::new();
@@ -42,29 +42,32 @@ fn get_prev_value(values: &Vec<i64>) -> i64 {
     expansion
         .iter()
         .rev()
-        .map(|v| v.first().unwrap().clone())
+        .map(|v| *v.first().unwrap())
         .fold(0, |acc, v| v - acc)
 }
 
-impl AoCProblem for AoCDay9 {
-    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
-        for line in reader.lines() {
-            self.values.push(
-                line?
-                    .split_ascii_whitespace()
+impl FromStr for AoCDay9 {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let mut values = Vec::new();
+        for line in s.lines() {
+            values.push(
+                line.split_ascii_whitespace()
                     .map(|v| v.parse::<i64>())
                     .collect::<Result<Vec<i64>, ParseIntError>>()?,
             )
         }
-
-        Ok(())
+        Ok(Self { values })
     }
+}
 
+impl AoCProblem for AoCDay9 {
     fn solve_part1(&self) -> Result<String> {
         Ok(self
             .values
             .iter()
-            .map(get_next_value)
+            .map(|v| get_next_value(v))
             .sum::<i64>()
             .to_string())
     }
@@ -73,7 +76,7 @@ impl AoCProblem for AoCDay9 {
         Ok(self
             .values
             .iter()
-            .map(get_prev_value)
+            .map(|v| get_prev_value(v))
             .sum::<i64>()
             .to_string())
     }

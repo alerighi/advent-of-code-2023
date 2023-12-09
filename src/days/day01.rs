@@ -1,7 +1,7 @@
-use std::io::BufRead;
+use std::str::FromStr;
 
 use crate::problem::AoCProblem;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 
 #[derive(Debug, Default)]
 pub struct AoCDay1 {
@@ -12,15 +12,17 @@ const NUMBER_AS_LETTERS: [&str; 10] = [
     "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
 ];
 
-impl AoCProblem for AoCDay1 {
-    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
-        for line in reader.lines() {
-            self.lines.push(line?);
-        }
+impl FromStr for AoCDay1 {
+    type Err = anyhow::Error;
 
-        Ok(())
+    fn from_str(s: &str) -> Result<Self> {
+        Ok(Self {
+            lines: s.lines().map(str::to_string).collect::<Vec<String>>(),
+        })
     }
+}
 
+impl AoCProblem for AoCDay1 {
     fn solve_part1(&self) -> Result<String> {
         let mut sum = 0u32;
         for line in &self.lines {
@@ -31,10 +33,11 @@ impl AoCProblem for AoCDay1 {
                 .collect();
 
             if !numbers.is_empty() {
-                sum += (numbers.first().ok_or(anyhow!("no solution"))? * 10) + numbers.last().ok_or(anyhow!("no solution"))?;
+                sum += (numbers.first().ok_or(anyhow!("no solution"))? * 10)
+                    + numbers.last().ok_or(anyhow!("no solution"))?;
             }
         }
-        
+
         Ok(sum.to_string())
     }
 
@@ -58,10 +61,11 @@ impl AoCProblem for AoCDay1 {
             }
 
             if !digits.is_empty() {
-                sum += (digits.first().ok_or(anyhow!("no solution"))? * 10) + digits.last().ok_or(anyhow!("no solution"))?;
+                sum += (digits.first().ok_or(anyhow!("no solution"))? * 10)
+                    + digits.last().ok_or(anyhow!("no solution"))?;
             }
         }
-        
+
         Ok(sum.to_string())
     }
 }

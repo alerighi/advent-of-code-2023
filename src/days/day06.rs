@@ -1,4 +1,4 @@
-use std::io::BufRead;
+use std::str::FromStr;
 
 use crate::problem::AoCProblem;
 use anyhow::{bail, Result};
@@ -23,7 +23,6 @@ impl Parse for Vec<u32> {
     {
         node.into_inner()
             .map(|n| n.as_str().parse::<u32>().map_err(anyhow::Error::from))
-            .into_iter()
             .collect::<Result<Vec<u32>>>()
     }
 }
@@ -55,28 +54,30 @@ fn solve(t: u64, d: u64) -> u64 {
     t + 1 - p * 2
 }
 
-impl AoCProblem for AoCDay6 {
-    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
-        let mut content = String::new();
-        reader.read_to_string(&mut content)?;
-        let parsed = Day06Parser::parse(Rule::input, &content)?;
+impl FromStr for AoCDay6 {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let mut result = AoCDay6::default();
+        let parsed = Day06Parser::parse(Rule::input, s)?;
         for pair in parsed {
             match pair.as_rule() {
                 Rule::time => {
-                    self.time = Vec::<u32>::parse(pair)?;
+                    result.time = Vec::<u32>::parse(pair)?;
                 }
                 Rule::distance => {
-                    self.distance = Vec::<u32>::parse(pair)?;
+                    result.distance = Vec::<u32>::parse(pair)?;
                 }
                 _ => {
                     bail!("parsing error");
                 }
             }
         }
-
-        Ok(())
+        Ok(result)
     }
+}
 
+impl AoCProblem for AoCDay6 {
     fn solve_part1(&self) -> Result<String> {
         Ok(self
             .time

@@ -1,9 +1,9 @@
-use std::{cmp::Ordering, collections::HashMap, io::BufRead};
+use std::{cmp::Ordering, collections::HashMap, str::FromStr};
 
 use crate::problem::AoCProblem;
 use anyhow::Result;
 
-#[derive(Debug, Eq, Ord, Clone)]
+#[derive(Debug, Clone)]
 struct Hand(Vec<char>);
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -57,8 +57,18 @@ impl Score {
             count.insert(c, 1 + count.get(&c).unwrap_or(&0));
         }
 
-        if let Some((_, c)) = count.iter().filter(|(&c, _)| c != 'J').map(|(&c, &n)| (n, c)).max() {
-            Score::from(&Hand(hand.0.iter().map(|&e| if e == 'J' { c } else { e }).collect::<Vec<char>>()))
+        if let Some((_, c)) = count
+            .iter()
+            .filter(|(&c, _)| c != 'J')
+            .map(|(&c, &n)| (n, c))
+            .max()
+        {
+            Score::from(&Hand(
+                hand.0
+                    .iter()
+                    .map(|&e| if e == 'J' { c } else { e })
+                    .collect::<Vec<char>>(),
+            ))
         } else {
             Score::from(hand)
         }
@@ -142,24 +152,35 @@ impl PartialEq for Hand {
     }
 }
 
+impl Eq for Hand {}
+
 impl PartialOrd for Hand {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(cmp(self, other))
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Hand {
+    fn cmp(&self, other: &Self) -> Ordering {
+        cmp(self, other)
+    }
+}
+
+impl FromStr for AoCDay7 {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let mut games = Vec::new();
+        for line in s.lines() {
+            if let Some((cards, score)) = line.split_once(' ') {
+                games.push(Game(Hand(cards.chars().collect()), score.parse()?));
+            }
+        }
+        Ok(Self { games })
     }
 }
 
 impl AoCProblem for AoCDay7 {
-    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
-        for line in reader.lines() {
-            if let Some((cards, score)) = line?.split_once(' ') {
-                self.games
-                    .push(Game(Hand(cards.chars().collect()), score.parse()?));
-            }
-        }
-
-        Ok(())
-    }
-
     fn solve_part1(&self) -> Result<String> {
         let mut game_with_rank = self.games.clone();
         game_with_rank.sort();
@@ -181,7 +202,8 @@ impl AoCProblem for AoCDay7 {
             .enumerate()
             .map(|(rank, Game(_, bet))| bet * (rank as u32 + 1))
             .sum::<u32>()
-            .to_string())    }
+            .to_string())
+    }
 }
 
 #[cfg(test)]

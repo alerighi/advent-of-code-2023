@@ -2,14 +2,14 @@ mod days;
 mod problem;
 mod utils;
 
-use std::fs::File;
-use std::io::{BufReader, BufRead};
+use std::fs::{self, File};
+use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::time::Instant;
 
 use problem::AoCProblem;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 
 use crate::days::day01::AoCDay1;
@@ -60,7 +60,7 @@ fn main() -> Result<()> {
         if !path.extension().is_some_and(|e| e == "ans") {
             let input = path.to_str().ok_or(anyhow!("parse failed"))?;
 
-            match run_on_input(args.day, input, args.dump_input) {
+            match run_day(args.day, input, args.dump_input) {
                 Ok(()) => {}
                 Err(error) => println!("error running on input {}: {:?}", input, error),
             }
@@ -70,42 +70,48 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn run_on_input(day: u32, input: &str, dump_input: bool) -> Result<()> {
-    let mut problem: Box<dyn AoCProblem> = match day {
-        1 => Box::<AoCDay1>::default(),
-        2 => Box::<AoCDay2>::default(),
-        3 => Box::<AoCDay3>::default(),
-        4 => Box::<AoCDay4>::default(),
-        5 => Box::<AoCDay5>::default(),
-        6 => Box::<AoCDay6>::default(),
-        7 => Box::<AoCDay7>::default(),
-        8 => Box::<AoCDay8>::default(),
-        9 => Box::<AoCDay9>::default(),
-        10 => Box::<AoCDay10>::default(),
-        11 => Box::<AoCDay11>::default(),
-        12 => Box::<AoCDay12>::default(),
-        13 => Box::<AoCDay13>::default(),
-        14 => Box::<AoCDay14>::default(),
-        15 => Box::<AoCDay15>::default(),
-        16 => Box::<AoCDay16>::default(),
-        17 => Box::<AoCDay17>::default(),
-        18 => Box::<AoCDay18>::default(),
-        19 => Box::<AoCDay19>::default(),
-        20 => Box::<AoCDay20>::default(),
-        21 => Box::<AoCDay21>::default(),
-        22 => Box::<AoCDay22>::default(),
-        23 => Box::<AoCDay23>::default(),
-        24 => Box::<AoCDay24>::default(),
-        25 => Box::<AoCDay25>::default(),
-        _ => panic!("day not yet implemented"),
-    };
+fn run_day(day: u32, input: &str, dump_input: bool) -> Result<()> {
+    match day {
+        1 => run_on_input::<AoCDay1>(day, input, dump_input),
+        2 => run_on_input::<AoCDay2>(day, input, dump_input),
+        3 => run_on_input::<AoCDay3>(day, input, dump_input),
+        4 => run_on_input::<AoCDay4>(day, input, dump_input),
+        5 => run_on_input::<AoCDay5>(day, input, dump_input),
+        6 => run_on_input::<AoCDay6>(day, input, dump_input),
+        7 => run_on_input::<AoCDay7>(day, input, dump_input),
+        8 => run_on_input::<AoCDay8>(day, input, dump_input),
+        9 => run_on_input::<AoCDay9>(day, input, dump_input),
+        10 => run_on_input::<AoCDay10>(day, input, dump_input),
+        11 => run_on_input::<AoCDay11>(day, input, dump_input),
+        12 => run_on_input::<AoCDay12>(day, input, dump_input),
+        13 => run_on_input::<AoCDay13>(day, input, dump_input),
+        14 => run_on_input::<AoCDay14>(day, input, dump_input),
+        15 => run_on_input::<AoCDay15>(day, input, dump_input),
+        16 => run_on_input::<AoCDay16>(day, input, dump_input),
+        17 => run_on_input::<AoCDay17>(day, input, dump_input),
+        18 => run_on_input::<AoCDay18>(day, input, dump_input),
+        19 => run_on_input::<AoCDay19>(day, input, dump_input),
+        20 => run_on_input::<AoCDay20>(day, input, dump_input),
+        21 => run_on_input::<AoCDay21>(day, input, dump_input),
+        22 => run_on_input::<AoCDay22>(day, input, dump_input),
+        23 => run_on_input::<AoCDay23>(day, input, dump_input),
+        24 => run_on_input::<AoCDay24>(day, input, dump_input),
+        25 => run_on_input::<AoCDay25>(day, input, dump_input),
+        _ => bail!("day not implemented"),
+    }
+}
 
+fn run_on_input<T>(day: u32, input: &str, dump_input: bool) -> Result<()>
+where
+    T: AoCProblem,
+    anyhow::Error: From<T::Err>,
+{
     println!("Running on input: {}", input);
 
-    let parsing_time = Instant::now();
-    let file = File::open(input)?;
-    let mut buffer_reader = BufReader::new(file);
-    problem.parse(&mut buffer_reader)?;
+    let parsing_time: Instant = Instant::now();
+    let input_string = fs::read_to_string(input)?;
+
+    let problem = input_string.parse::<T>()?;
 
     println!(
         "parsing finished ({}ms)",
@@ -127,7 +133,7 @@ fn run_on_input(day: u32, input: &str, dump_input: bool) -> Result<()> {
     }
 
     let validate = |ans: &String, expected: &String| -> &str {
-        if expected.len() == 0 {
+        if expected.is_empty() {
             "UNKNOWN"
         } else if expected.trim() == ans {
             "CORRECT"

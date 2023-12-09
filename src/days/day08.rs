@@ -1,14 +1,11 @@
-use std::{
-    collections::HashMap,
-    io::{self, BufRead},
-};
+use std::{collections::HashMap, str::FromStr};
 
 use crate::problem::AoCProblem;
 use anyhow::{anyhow, Result};
 use sscanf::sscanf;
 
-const START: &'static str = "AAA";
-const DESTINATION: &'static str = "ZZZ";
+const START: &str = "AAA";
+const DESTINATION: &str = "ZZZ";
 
 #[derive(Debug, Clone, Copy)]
 enum Direction {
@@ -44,7 +41,7 @@ pub struct AoCDay8 {
     nodes: HashMap<String, Node>,
 }
 
-// I admit, I used GPT for this... 
+// I admit, I used GPT for this...
 fn gcd(mut a: usize, mut b: usize) -> usize {
     while b != 0 {
         let temp = b;
@@ -63,26 +60,32 @@ fn lcm(a: usize, b: usize) -> usize {
 }
 
 fn vector_lcm(numbers: Vec<usize>) -> usize {
-    numbers.iter().cloned().fold(1, |acc, x| lcm(acc, x))
+    numbers.iter().cloned().fold(1, lcm)
 }
 
-impl AoCProblem for AoCDay8 {
-    fn parse(&mut self, reader: &mut dyn BufRead) -> Result<()> {
-        let lines = reader.lines().collect::<io::Result<Vec<String>>>()?;
+impl FromStr for AoCDay8 {
+    type Err = anyhow::Error;
 
+    fn from_str(s: &str) -> Result<Self> {
+        let lines = s.lines().collect::<Vec<&str>>();
+
+        let mut result = AoCDay8::default();
         for c in lines[0].chars() {
-            self.directions.push(Direction::from(c));
+            result.directions.push(Direction::from(c));
         }
 
         for line in &lines[2..] {
             let (from, left, right) = sscanf!(line, "{str} = ({str}, {str})").unwrap();
-            self.nodes
+            result
+                .nodes
                 .insert(from.into(), Node(left.into(), right.into()));
         }
 
-        Ok(())
+        Ok(result)
     }
+}
 
+impl AoCProblem for AoCDay8 {
     fn solve_part1(&self) -> Result<String> {
         let mut current_node: String = START.into();
         let mut step: usize = 0;
@@ -103,8 +106,8 @@ impl AoCProblem for AoCDay8 {
         let mut current_nodes = self
             .nodes
             .keys()
-            .filter(|k| k.ends_with("A"))
-            .map(|k| k.clone())
+            .filter(|k| k.ends_with('A'))
+            .cloned()
             .collect::<Vec<String>>();
         let mut step: usize = 0;
 
@@ -120,7 +123,7 @@ impl AoCProblem for AoCDay8 {
             step += 1;
 
             for (i, node) in current_nodes.iter().enumerate() {
-                if node.ends_with("Z") {
+                if node.ends_with('Z') {
                     terminal_states[i] = step;
                 }
             }
