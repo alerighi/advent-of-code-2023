@@ -6,6 +6,9 @@ pub struct Args {
     /// day to solve
     pub day: u32,
 
+    /// filter on the input file
+    pub input_filter: Option<String>,
+
     /// dump the input
     #[arg(short, long)]
     pub dump_input: bool,

@@ -27,8 +27,8 @@ impl TestCase {
         })
     }
 
-    pub fn name(&self) -> Option<String> {
-        self.path.file_name()?.to_str().map(str::to_string)
+    pub fn name(&self) -> String {
+        self.path.file_name().unwrap_or_default().to_str().map(str::to_string).unwrap_or_default()
     }
 
     pub fn input(&self) -> &str {

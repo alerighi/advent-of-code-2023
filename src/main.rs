@@ -50,6 +50,11 @@ fn main() -> Result<()> {
     println!("{} solving day {}", "==>".green().bold(), args.day);
 
     for case in load_test_cases(args.day)? {
+        if let Some(filter) = &args.input_filter {
+            if !case.name().contains(filter) {
+                continue
+            }
+        }
         run_day(&args, &case);
     }
 
@@ -95,7 +100,7 @@ where
     println!(
         "{} Running on case: {}",
         "==>".green().bold(),
-        case.name().unwrap_or_default()
+        case.name()
     );
 
     let parsing_time: Instant = Instant::now();
