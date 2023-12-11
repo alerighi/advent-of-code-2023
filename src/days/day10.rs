@@ -5,7 +5,6 @@ use std::{
 
 use crate::problem::AoCProblem;
 use anyhow::{bail, Error, Result};
-use colored::{ColoredString, Colorize};
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Hash)]
 struct Point(i32, i32);
